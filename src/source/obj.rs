@@ -1,24 +1,16 @@
 use source::*;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Hit {
-    pub t: f64,
-    // レイの原点-交差点の距離
-    pub p: vector::V,
-    // 交点の位置ヴェクトル
-    pub n: vector::V,
-    // 交点の法線:w
-    pub sphere: Sphere,
-    // 当たった球の情報
+pub struct Ray {
+    pub o: vector::V,
+    // 原点
+    pub d: vector::V,
+    // 方向
 }
-
-impl Hit {
-    fn new() -> Hit {
-        Hit {
-            t: 0.0,
-            p: vector::V::new(),
-            n: vector::V::new(),
-            sphere: Sphere::new(vector::V::new(), 0.0),
+impl Ray {
+    pub fn new() -> Ray {
+        Ray {
+            o: vector::V::new(),
+            d: vector::V::new(),
         }
     }
 }
@@ -29,11 +21,17 @@ pub struct Sphere {
     // 中心位置
     pub r: f64,
     // 半径
+    pub refl: vector::V,
+    // 反射率
 }
 
 impl Sphere {
-    pub fn new(p: vector::V, r: f64) -> Sphere {
-        Sphere { p: p, r: r }
+    pub fn new(p: vector::V, r: f64, refl: vector::V) -> Sphere {
+        Sphere {
+            p: p,
+            r: r,
+            refl: refl,
+        }
     }
 
     pub fn intersect(self: Sphere, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
@@ -52,12 +50,14 @@ impl Sphere {
         let t1 = b - det.sqrt();
         if tmin < t1 && t1 < tmax {
             hit.t = t1;
+            hit.sphere = self;
             return Some(hit);
         }
 
         let t2 = b + det.sqrt();
         if tmin < t2 && t2 < tmax {
             hit.t = t2;
+            hit.sphere = self;
             Some(hit)
         } else {
             None
@@ -85,6 +85,11 @@ impl Scene {
                         z: 0.0,
                     },
                     0.5,
+                    vector::V {
+                        x: 0.0,
+                        y: 1.0,
+                        z: 0.0,
+                    },
                 ),
                 Sphere::new(
                     vector::V {
@@ -93,6 +98,11 @@ impl Scene {
                         z: 0.0,
                     },
                     0.5,
+                    vector::V {
+                        x: 0.0,
+                        y: 0.0,
+                        z: 1.0,
+                    },
                 ),
             ],
         }
@@ -102,58 +112,74 @@ impl Scene {
         Scene {
             spheres: vec![
                 Sphere::new(
-                    // 左の壁
+                    //左の壁
                     vector::V {
                         x: 1e5 + 1.0,
                         y: 40.8,
                         z: 81.6,
                     },
                     1e5,
+                    vector::V {
+                        x: 0.3,
+                        y: 1.0,
+                        z: 0.3,
+                    },
                 ),
                 Sphere::new(
-                    // 右の壁
+                    //右の壁
                     vector::V {
                         x: -1e5 + 99.0,
                         y: 40.8,
                         z: 81.6,
                     },
                     1e5,
+                    vector::V {
+                        x: 0.3,
+                        y: 0.3,
+                        z: 1.0,
+                    },
                 ),
                 Sphere::new(
-                    // 奥の壁
+                    //奥の壁
                     vector::V {
-                        x: 50.0,
+                        x: 51.0,
                         y: 40.8,
                         z: 1e5,
                     },
                     1e5,
-                ),
-                // Sphere::new(
-                //     // 手前の壁（いらんやろ）
-                //     vector::V {
-                //         x: 50.0,
-                //         y: 40.8,
-                //         z: -1e5 + 170.0,
-                //     },
-                //     1e5,
-                // ),
-                Sphere::new(
-                    // 床
                     vector::V {
-                        x: 50.0,
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
+                ), //
+                Sphere::new(
+                    //床
+                    vector::V {
+                        x: 51.0,
                         y: 1e5,
                         z: 81.6,
                     },
                     1e5,
+                    vector::V {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
                 ),
                 Sphere::new(
-                    // 天井
+                    //天井
                     vector::V {
-                        x: 50.0,
+                        x: 51.0,
                         y: -1e5 + 81.6,
                         z: 81.6,
                     },
                     1e5,
+                    vector::V {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
                 ),
                 Sphere::new(
                     vector::V {
@@ -162,6 +188,11 @@ impl Scene {
                         z: 47.0,
                     },
                     16.5,
+                    vector::V {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
                 ),
                 Sphere::new(
                     vector::V {
@@ -170,22 +201,32 @@ impl Scene {
                         z: 78.0,
                     },
                     16.5,
+                    vector::V {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                    },
                 ),
                 Sphere::new(
+                    // 上の照明
                     vector::V {
-                        x: 50.0,
+                        x: 51.0,
                         y: 681.6,
                         z: 81.6,
                     },
-                    600.0,
+                    601.0,
+                    vector::V {
+                        x: 0.5,
+                        y: 1.0,
+                        z: 1.0,
+                    },
                 ),
             ],
         }
     }
-
     pub fn intersect(self: &Scene, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
         let mut minh: Option<Hit> = None;
-        let mut s: Sphere = Sphere::new(vector::V::new(), 0.0);
+        let mut s: Sphere = Sphere::new(vector::V::new(), 0.0, vector::V::new());
         let mut buf = tmax;
 
         for c in self.spheres.iter() {
@@ -213,17 +254,25 @@ impl Scene {
     }
 }
 
-pub struct Ray {
-    pub o: vector::V,
-    // 原点
-    pub d: vector::V,
-    // 方向
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Hit {
+    pub t: f64,
+    // レイの原点-交差点の距離
+    pub p: vector::V,
+    // 交点の位置ヴェクトル
+    pub n: vector::V,
+    // 交点の法線:w
+    pub sphere: Sphere,
+    // 当たった球の情報
 }
-impl Ray {
-    pub fn new() -> Ray {
-        Ray {
-            o: vector::V::new(),
-            d: vector::V::new(),
+
+impl Hit {
+    fn new() -> Hit {
+        Hit {
+            t: 0.0,
+            p: vector::V::new(),
+            n: vector::V::new(),
+            sphere: Sphere::new(vector::V::new(), 0.0, vector::V::new()),
         }
     }
 }

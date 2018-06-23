@@ -13,17 +13,18 @@ const HEIGHT: usize = 800;
 const MAX: usize = 255;
 
 fn main() {
-    // 球体のみ用
-    // let eye: V = V::new_sig(5.0);
-    // // 目の位置
-    // let center: V = V::new_sig(0.0);
-    // // 注視点
     let up: V = V::new_tri(0.0, 1.0, 0.0);
     // "上"の方向
     let fov: f64 = 30.0 * PI / 180.0;
     // 視野角 ラジアンに直した
     let aspect: f64 = WIDTH as f64 / HEIGHT as f64;
     // アスペクト比（4:3みたいなやつ）
+
+    // 球体のみ用
+    // let eye: V = V::new_sig(5.0);
+    // // 目の位置
+    // let center: V = V::new_sig(0.0);
+    // // 注視点
 
     // in room用
     let eye = V::new_tri(50.0, 52.0, 295.6);
@@ -78,16 +79,29 @@ fn main() {
         };
 
         if let Some(s) = h {
-            let n: vector::V = s.n;
-            // 球面上の接点の法線
+            // 反射率
+            let c: vector::V = s.sphere.refl * V::new_sig(V::dot(s.n, -ray.d));
+            // V::new_sig(V::dot(s.n, -ray.d))を
+            // 入れるとランバート反射になる。
             file.write_all(
                 format!(
                     "{} {} {}\n",
-                    tonemap(n.x.abs()),
-                    tonemap(n.y.abs()),
-                    tonemap(n.z.abs())
+                    tonemap(c.x.abs()),
+                    tonemap(c.y.abs()),
+                    tonemap(c.z.abs())
                 ).as_bytes(),
             );
+
+        // // 球面上の接点の法線
+        // let n: vector::V = s.n;
+        // file.write_all(
+        //     format!(
+        //         "{} {} {}\n",
+        //         tonemap(n.x.abs()),
+        //         tonemap(n.y.abs()),
+        //         tonemap(n.z.abs())
+        //     ).as_bytes(),
+        // );
         } else {
             file.write_all(format!("{} {} {}\n", 0, 0, 0).as_bytes());
         }
