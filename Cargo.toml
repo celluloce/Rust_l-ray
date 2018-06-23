@@ -1,0 +1,8 @@
+[package]
+name = "l-ray"
+version = "0.1.0"
+authors = ["celluloce <celluloce24@gmail.com>"]
+
+[dependencies]
+threadpool = "1.7.1"
+rand = "0.5.3"
