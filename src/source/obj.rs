@@ -23,17 +23,26 @@ pub struct Sphere {
     // 半径
     pub refl: vector::V,
     // 反射率
+    pub ill: vector::V,
 }
 
 impl Sphere {
-    pub fn new(p: vector::V, r: f64, refl: vector::V) -> Sphere {
+    pub fn new() -> Sphere {
+        Sphere {
+            p: vector::V::new(),
+            r: 0.0,
+            refl: vector::V::new(),
+            ill: vector::V::new(),
+        }
+    }
+    pub fn from(p: vector::V, r: f64, refl: vector::V, ill: vector::V) -> Sphere {
         Sphere {
             p: p,
             r: r,
             refl: refl,
+            ill: ill,
         }
     }
-
     pub fn intersect(self: Sphere, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
         let op = self.p - ray.o;
         let b = vector::V::dot(op, ray.d);
@@ -78,7 +87,7 @@ impl Scene {
     pub fn new_mul() -> Scene {
         Scene {
             spheres: vec![
-                Sphere::new(
+                Sphere::from(
                     vector::V {
                         x: -0.2,
                         y: 0.0,
@@ -90,8 +99,13 @@ impl Scene {
                         y: 1.0,
                         z: 0.0,
                     },
+                    vector::V {
+                        x: 0.75,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     vector::V {
                         x: 0.2,
                         y: 0.0,
@@ -103,15 +117,19 @@ impl Scene {
                         y: 0.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.75,
+                    },
                 ),
             ],
         }
     }
-
     pub fn in_room() -> Scene {
         Scene {
             spheres: vec![
-                Sphere::new(
+                Sphere::from(
                     //左の壁
                     vector::V {
                         x: 1e5 + 1.0,
@@ -124,8 +142,13 @@ impl Scene {
                         y: 1.0,
                         z: 0.3,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     //右の壁
                     vector::V {
                         x: -1e5 + 99.0,
@@ -138,8 +161,13 @@ impl Scene {
                         y: 0.3,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     //奥の壁
                     vector::V {
                         x: 51.0,
@@ -152,8 +180,13 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ), //
-                Sphere::new(
+                Sphere::from(
                     //床
                     vector::V {
                         x: 51.0,
@@ -166,8 +199,13 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     //天井
                     vector::V {
                         x: 51.0,
@@ -180,8 +218,13 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     vector::V {
                         x: 27.0,
                         y: 16.5,
@@ -193,8 +236,13 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     vector::V {
                         x: 73.0,
                         y: 16.5,
@@ -206,8 +254,13 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
-                Sphere::new(
+                Sphere::from(
                     // 上の照明
                     vector::V {
                         x: 51.0,
@@ -220,13 +273,18 @@ impl Scene {
                         y: 1.0,
                         z: 1.0,
                     },
+                    vector::V {
+                        x: 0.25,
+                        y: 0.25,
+                        z: 0.25,
+                    },
                 ),
             ],
         }
     }
     pub fn intersect(self: &Scene, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
         let mut minh: Option<Hit> = None;
-        let mut s: Sphere = Sphere::new(vector::V::new(), 0.0, vector::V::new());
+        let mut s: Sphere = Sphere::new();
         let mut buf = tmax;
 
         for c in self.spheres.iter() {
@@ -272,7 +330,7 @@ impl Hit {
             t: 0.0,
             p: vector::V::new(),
             n: vector::V::new(),
-            sphere: Sphere::new(vector::V::new(), 0.0, vector::V::new()),
+            sphere: Sphere::new(),
         }
     }
 }

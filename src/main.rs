@@ -1,11 +1,12 @@
 extern crate l_ray;
+extern crate threadpool;
 
+use std::f64::consts::*;
 use std::fs::File;
 use std::io::*;
-
-use l_ray::source::{vector::*, *};
-use std::f64::consts::*;
 // PIに使った
+
+use l_ray::source::{random::*, vector::*, *};
 
 // 画像の情報
 const WIDTH: usize = 1200;
@@ -42,7 +43,7 @@ fn main() {
     let VE: V = V::cross(WE, UE);
     // WEとUEに垂直な単位ベクトル（双方正規化されてるため正規化の必要なし）
 
-    // let scene = obj::Scene::new_mul();
+    //let scene = obj::Scene::new_mul();
     let scene = obj::Scene::in_room();
 
     let mut file = File::create("ideal.ppm").unwrap();
