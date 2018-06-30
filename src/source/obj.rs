@@ -24,6 +24,7 @@ pub struct Sphere {
     pub refl: vector::V,
     // 反射率
     pub ill: vector::V,
+    // 光度
 }
 
 impl Sphere {
@@ -74,7 +75,7 @@ impl Sphere {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Scene {
     pub spheres: Vec<Sphere>,
 }
@@ -100,9 +101,9 @@ impl Scene {
                         z: 0.0,
                     },
                     vector::V {
-                        x: 0.75,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -118,9 +119,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.75,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
             ],
@@ -143,9 +144,9 @@ impl Scene {
                         z: 0.3,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -162,9 +163,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -181,9 +182,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ), //
                 Sphere::from(
@@ -200,9 +201,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -219,9 +220,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -237,9 +238,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -255,9 +256,9 @@ impl Scene {
                         z: 1.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                 ),
                 Sphere::from(
@@ -269,14 +270,14 @@ impl Scene {
                     },
                     601.0,
                     vector::V {
-                        x: 0.5,
-                        y: 1.0,
-                        z: 1.0,
+                        x: 0.0,
+                        y: 0.0,
+                        z: 0.0,
                     },
                     vector::V {
-                        x: 0.25,
-                        y: 0.25,
-                        z: 0.25,
+                        x: 12.0,
+                        y: 12.0,
+                        z: 12.0,
                     },
                 ),
             ],
