@@ -146,11 +146,11 @@ fn main() {
 						break;
 					}
 				}
-				sen.send(ill_l).expect("failed send iter");
-			});
 		// 何を更新しているかわからない
 		let rec_l = rec.recv().unwrap();
 		write_push = write_push + rec_l / V::new_sig(SPP as f64);
+				sen.send(ill_l).expect("failed send iter");
+			});
 		}
 		write_v.push(write_push);
 
