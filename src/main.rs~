@@ -105,15 +105,23 @@ fn main() {
 				let mut ill_l = V::new_sig(0.0);
 				let mut refl_l = V::new_sig(1.0) ;
 
-				for depth in 0..2 {
-					let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
 
 					if let Some(s) = h {
 					// 球にレイが当たった時
 
 						// 光度更新
 						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
 
+						// }
 						// 球上の交点をレイの原点にする
 						ray.o = s.p;
 						// レイの方向
@@ -135,22 +143,391 @@ fn main() {
 							};
 							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
 						}
-						refl_l = refl_l * V::new_sig(s.sphere.r);
+						refl_l = refl_l * s.sphere.refl;
 					} else {
-					// 当たらなかったらループから抜ける
-						break;
 					}
 
-					if ill_l.x.max(ill_l.y.max(ill_l.z)) == 0.0 {
-					// if ill_l * ill_l.y * ill_l.z == 0.0 {
-						break;
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
 					}
-				}
-		// 何を更新しているかわからない
-		let rec_l = rec.recv().unwrap();
-		write_push = write_push + rec_l / V::new_sig(SPP as f64);
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
+					println!("{:?}", ray_l);
+
+					// 何故かrayの値が元に戻る
+
+					let h: Option<obj::Hit> = scene.intersect(ray, 1.0, 1e+10);
+
+					if let Some(s) = h {
+					// 球にレイが当たった時
+
+						// 光度更新
+						ill_l = ill_l + refl_l * s.sphere.ill;
+						// if ill_l.x != 0.0 {
+						// 	println!("num: {}", depth);
+						// 	println!("refl_l: {:?}", refl_l);
+						// 	println!("ill_l: {:?}", ill_l);
+						// 	println!("");
+
+						// }
+						// 球上の交点をレイの原点にする
+						ray.o = s.p;
+						// レイの方向
+						{
+							// nが法線、u,vがそれに直交するベクトル。
+							// nから直交単位ベクトルを生成してる
+       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+							let (u, v) = tangent_space(n);
+							let d: V = {
+								let r = random::<f64>().sqrt();
+								let t = 2.0 * PI * random::<f64>();
+								let x = r * t.cos();
+								let y = r * t.sin();
+								V {
+									x: x,
+									y: y,
+									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+								}
+							};
+							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
+						}
+						refl_l = refl_l * s.sphere.refl;
+					} else {
+					}
 				sen.send(ill_l).expect("failed send iter");
 			});
+			// 何を更新しているかわからない
+			let rec_l = rec.recv().unwrap();
+			write_push = write_push + rec_l / V::new_sig(SPP as f64);
 		}
 		write_v.push(write_push);
 

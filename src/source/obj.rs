@@ -1,5 +1,6 @@
 use source::*;
 
+#[derive(Debug, Copy, Clone)]
 pub struct Ray {
     pub o: vector::V,
     // 原点
@@ -283,13 +284,13 @@ impl Scene {
             ],
         }
     }
-    pub fn intersect(self: &Scene, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
+    pub fn intersect(self: &Scene, ray: Ray, tmin: f64, tmax: f64) -> Option<Hit> {
         let mut minh: Option<Hit> = None;
         let mut s: Sphere = Sphere::new();
         let mut buf = tmax;
 
         for c in self.spheres.iter() {
-            let h = c.intersect(ray, tmin, tmax);
+            let h = c.intersect(&ray, tmin, tmax);
             if let Some(i) = h {
                 if i.t < buf {
                     buf = i.t;
