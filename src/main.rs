@@ -105,7 +105,7 @@ fn main() {
 				let mut ill_l = V::new_sig(0.0);
 				let mut refl_l = V::new_sig(1.0) ;
 
-				for depth in 0..2 {
+				for depth in 0..10 {
 					let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
 
 					if let Some(s) = h {
