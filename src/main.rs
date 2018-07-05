@@ -117,7 +117,7 @@ fn main() {
 						// 球上の交点をレイの原点にする
 						ray.o = s.p;
 						// レイの方向
-						{
+						ray.d = {
 							// nが法線、u,vがそれに直交するベクトル。
 							// nから直交単位ベクトルを生成してる
        						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
@@ -133,8 +133,8 @@ fn main() {
 									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
 								}
 							};
-							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
-						}
+							u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
+						};
 						refl_l = refl_l * s.sphere.ill;
 					} else {
 					// 当たらなかったらループから抜ける
