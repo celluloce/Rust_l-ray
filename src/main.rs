@@ -68,22 +68,17 @@ fn main() {
 	//let scene = obj::Scene::new_mul();
 	let scene = obj::Scene::in_room();
 
-	// 書き込み用
-	let iter: V = V::new();
-	// let mut iter: [u32; 3] = [0, 0, 0];
-	let mut write_v: Vec<V> = Vec::with_capacity(all);
-
 	for i in 0..all {
-		let mut write_push = V::new();
-		for j in 0..SPP as usize {
-			let scene = scene.clone();
-			let mut iter = iter.clone();
-			let sen = sen.clone();
 
-			pool.execute(move || {
+		let mut write_push = V::new();
+		let scene = scene.clone();
+		let sen = sen.clone();
+
+		pool.execute(move || {
+			for j in 0..SPP as usize {
+
 				let x = (i % WIDTH) as f64;
 				let y = (HEIGHT - (i / WIDTH)) as f64;
-
 				let mut ray = obj::Ray::new();
 
 				ray.o = eye;
@@ -131,20 +126,17 @@ fn main() {
 
 					if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {break;}
 				}
-				sen.send(ill_l).expect("failed send iter");
-			});
-		let rec_l = rec.recv().unwrap();
-		write_push = write_push + rec_l / V::new_sig(SPP as f64);
-		}
-		write_v.push(write_push);
-
-		if i % 10000 == 0 {
-			println!("done: {}/960000", i);
-			println!("{:?}", write_push);
-			// println!("{:?}", rec_l/ V::new_sig(SPP as f64));
-		}
+				write_push = ill_l + refl_l / V::new_sig(SPP as f64);
+			}
+			let write_iter = [write_push.x, write_push.y, write_push.z, i as f64];
+			sen.send(write_iter).expect("failed send iter");
+			if i % 10000 == 0 {
+				println!("done: {}/960000", i);
+			}
+		});
 	}
-	pool.join();
+
+	let write_v = rec.into_iter().take(all).collect::<Vec<[f64; 4]>>();
 
 	let tonemap = |v: f64| {
 		use std::cmp::*;
@@ -157,11 +149,26 @@ fn main() {
 	file.write_all(format!("P3\n{} {}\n{}\n", WIDTH, HEIGHT, 255).as_bytes())
 		.unwrap();
 
-	for n in write_v {
+	for c in 0..all {
+		println!("{}", c);
+		let mut buf = c / 10000 * 5000;
+		let mut ch = true;
+		let mut n = [0.0; 4];
+		loop {
+			if write_v[buf][3] == c as f64{
+				n = write_v[buf];
+				break;
+			}
+			if buf == c + 500 {
+				println!("input noise");
+				break;
+			}
+			buf += 1;
+		}
 		file.write_all(format!("{} {} {}\n",
-							   tonemap(n.x),
-							   tonemap(n.y),
-							   tonemap(n.z)).as_bytes()).unwrap();
+							   tonemap(n[0]),
+							   tonemap(n[1]),
+							   tonemap(n[2])).as_bytes()).unwrap();
 	}
 }
 
