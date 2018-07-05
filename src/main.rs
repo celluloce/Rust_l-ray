@@ -89,7 +89,7 @@ fn main() {
 				// rayの値
 				ray.o = eye;
 				// 目の位置
-				{
+				ray.d = {
 					let tf = (fov * 0.5).tan();
 					let rpx = 2.0 * (x + random::<f64>()) / wid - 1.0;
 					let rpy = 2.0 * (y + random::<f64>()) / hei - 1.0;
@@ -98,9 +98,9 @@ fn main() {
 						y: tf * rpy,
 						z: -1.0,
 					});
-					ray.d = UE * V::new_sig(w.x) + VE * V::new_sig(w.y) + WE * V::new_sig(w.z);
+					UE * V::new_sig(w.x) + VE * V::new_sig(w.y) + WE * V::new_sig(w.z)
 				// 目線の向き
-				}
+				};
 
 				let mut ill_l = V::new_sig(0.0);
 				let mut refl_l = V::new_sig(1.0) ;
