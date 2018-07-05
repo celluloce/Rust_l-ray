@@ -135,13 +135,13 @@ fn main() {
 							};
 							u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
 						};
-						refl_l = refl_l * s.sphere.ill;
+						refl_l = refl_l * s.sphere.refl;
 					} else {
 					// 当たらなかったらループから抜ける
 						break;
 					}
 
-					if ill_l.x.max(ill_l.y.max(ill_l.z)) == 0.0 {
+					if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {
 					// if ill_l * ill_l.y * ill_l.z == 0.0 {
 						break;
 					}
