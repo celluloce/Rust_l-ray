@@ -1,5 +1,6 @@
 use source::*;
 
+#[derive(Debug, Clone)]
 pub struct Ray {
     pub o: vector::V,
     // 原点
