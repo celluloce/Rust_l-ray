@@ -86,9 +86,7 @@ fn main() {
 
 				let mut ray = obj::Ray::new();
 
-				// rayの値
 				ray.o = eye;
-				// 目の位置
 				ray.d = {
 					let tf = (fov * 0.5).tan();
 					let rpx = 2.0 * (x + random::<f64>()) / wid - 1.0;
@@ -99,7 +97,6 @@ fn main() {
 						z: -1.0,
 					});
 					UE * V::new_sig(w.x) + VE * V::new_sig(w.y) + WE * V::new_sig(w.z)
-				// 目線の向き
 				};
 
 				let mut ill_l = V::new_sig(0.0);
@@ -109,17 +106,11 @@ fn main() {
 					let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
 
 					if let Some(s) = h {
-					// 球にレイが当たった時
 
-						// 光度更新
 						ill_l = ill_l + refl_l * s.sphere.ill;
 
-						// 球上の交点をレイの原点にする
 						ray.o = s.p;
-						// レイの方向
 						ray.d = {
-							// nが法線、u,vがそれに直交するベクトル。
-							// nから直交単位ベクトルを生成してる
        						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
 							let (u, v) = tangent_space(n);
 							let d: V = {
@@ -136,19 +127,12 @@ fn main() {
 							u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
 						};
 						refl_l = refl_l * s.sphere.refl;
-					} else {
-					// 当たらなかったらループから抜ける
-						break;
-					}
+					} else {break}
 
-					if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {
-					// if ill_l * ill_l.y * ill_l.z == 0.0 {
-						break;
-					}
+					if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {break;}
 				}
 				sen.send(ill_l).expect("failed send iter");
 			});
-		// 何を更新しているかわからない
 		let rec_l = rec.recv().unwrap();
 		write_push = write_push + rec_l / V::new_sig(SPP as f64);
 		}
