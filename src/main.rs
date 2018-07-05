@@ -135,7 +135,7 @@ fn main() {
 							};
 							ray.d = u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z);
 						}
-						refl_l = refl_l * V::new_sig(s.sphere.r);
+						refl_l = refl_l * s.sphere.ill;
 					} else {
 					// 当たらなかったらループから抜ける
 						break;
