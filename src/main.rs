@@ -22,7 +22,7 @@ const HEIGHT: usize = 800;
 const MAX: usize = 255;
 
 // pixelあたりのサンプル数（よく解ってない）
-const SPP: u32 = 10;
+const SPP: u32 = 1000;
 
 // Threadの数
 const WORKS: usize = 10;
@@ -75,9 +75,6 @@ fn main() {
 			for k in 0..all / WORKS {
 				let mut write_push = V::new();
 				let w_num = k + all / WORKS * i;
-				println!("i: {}",i );
-				println!("k: {}", k);
-				println!("whole: {}\n", w_num);
 
 				for j in 0..SPP as usize {
 					let x = (w_num % WIDTH) as f64;
@@ -87,8 +84,8 @@ fn main() {
 					ray.o = eye;
 					ray.d = {
 						let tf = (fov * 0.5).tan();
-						let rpx = 2.0 * (x + random::<f64>()) / wid - 1.0;
-						let rpy = 2.0 * (y + random::<f64>()) / hei - 1.0;
+						let rpx = 2.0 * (x ) / wid - 1.0;
+						let rpy = 2.0 * (y ) / hei - 1.0;
 						let w: V = V::norm(V {
 							x: aspect * tf * rpx,
 							y: tf * rpy,
@@ -123,16 +120,22 @@ fn main() {
 						} else {break}
 						if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {break;}
 					}
-					write_push = ill_l + refl_l / V::new_sig(SPP as f64);
+					write_push = write_push + refl_l / V::new_sig(SPP as f64);
 				}
 				buf_vec.push(write_push);
 				// buf_pushにVのやつをぶちこむ
+				if k % 1000 == 0{
+					print!("thread {}/{}: ", i, WORKS - 1);
+					println!("{}/{} done", k, all / WORKS);
+					if k == all/WORKS - 1{
+						println!("thread {}/{} done",i, WORKS - 1 );
+					}
+				}
 			}
 			buf_vec
 			//Thread終わりに返す
 		});
 		push_vec.push(push_th);
-		println!("done: {}/{}", i, WORKS);
 	}
 	let tonemap = |v: f64| {
 		use std::cmp::*;
@@ -149,9 +152,9 @@ fn main() {
 
 		for n in job_write.iter() {
 			file.write_all(format!("{} {} {}\n",
-								   tonemap(n.x),
-								   tonemap(n.y),
-								   tonemap(n.z)).as_bytes()).unwrap();
+								   tonemap(n.x.abs()),
+								   tonemap(n.y.abs()),
+								   tonemap(n.z.abs())).as_bytes()).unwrap();
 		}
 
 	}
