@@ -4,6 +4,7 @@ extern crate threadpool;
 
 use std::f64::consts::*;
 use std::fs::File;
+use std::thread::{*, self};
 use std::io::*;
 // PIに使った
 
@@ -23,7 +24,7 @@ const MAX: usize = 255;
 // pixelあたりのサンプル数（よく解ってない）
 const SPP: u32 = 10;
 
-// poolの数
+// Threadの数
 const WORKS: usize = 10;
 
 fn main() {
@@ -60,88 +61,82 @@ fn main() {
 	let VE: V = V::cross(WE, UE);
 	// WEとUEに垂直な単位ベクトル（双方正規化されてるため正規化の必要なし）
 
-	// Thread Pool
-	let pool = ThreadPool::new(WORKS);
-	let (sen, rec) = channel();
-
 	// scene 初期化
 	//let scene = obj::Scene::new_mul();
 	let scene = obj::Scene::in_room();
 
-	for i in 0..all {
-
-		let mut write_push = V::new();
+	let mut push_vec: Vec<JoinHandle<_>>= Vec::with_capacity(WORKS);
+	let mut count = 0;
+	for i in (0..WORKS).rev() {
 		let scene = scene.clone();
-		let sen = sen.clone();
+		let push_th = thread::spawn(move || {
+			let mut buf_vec = Vec::with_capacity(WORKS);
 
-		pool.execute(move || {
-			for j in 0..SPP as usize {
+			for k in 0..all / WORKS {
+				let mut write_push = V::new();
+				let w_num = k + all / WORKS * i;
+				println!("i: {}",i );
+				println!("k: {}", k);
+				println!("whole: {}\n", w_num);
 
-				let x = (i % WIDTH) as f64;
-				let y = (HEIGHT - (i / WIDTH)) as f64;
-				let mut ray = obj::Ray::new();
+				for j in 0..SPP as usize {
+					let x = (w_num % WIDTH) as f64;
+					let y = (HEIGHT - (w_num / WIDTH)) as f64;
+					let mut ray = obj::Ray::new();
 
-				ray.o = eye;
-				ray.d = {
-					let tf = (fov * 0.5).tan();
-					let rpx = 2.0 * (x + random::<f64>()) / wid - 1.0;
-					let rpy = 2.0 * (y + random::<f64>()) / hei - 1.0;
-					let w: V = V::norm(V {
-						x: aspect * tf * rpx,
-						y: tf * rpy,
-						z: -1.0,
-					});
-					UE * V::new_sig(w.x) + VE * V::new_sig(w.y) + WE * V::new_sig(w.z)
-				};
-
-				let mut ill_l = V::new_sig(0.0);
-				let mut refl_l = V::new_sig(1.0) ;
-
-				for depth in 0..10 {
-					let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
-
-					if let Some(s) = h {
-
-						ill_l = ill_l + refl_l * s.sphere.ill;
-
-						ray.o = s.p;
-						ray.d = {
-       						let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
-							let (u, v) = tangent_space(n);
-							let d: V = {
-								let r = random::<f64>().sqrt();
-								let t = 2.0 * PI * random::<f64>();
-								let x = r * t.cos();
-								let y = r * t.sin();
-								V {
-									x: x,
-									y: y,
-									z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
-								}
+					ray.o = eye;
+					ray.d = {
+						let tf = (fov * 0.5).tan();
+						let rpx = 2.0 * (x + random::<f64>()) / wid - 1.0;
+						let rpy = 2.0 * (y + random::<f64>()) / hei - 1.0;
+						let w: V = V::norm(V {
+							x: aspect * tf * rpx,
+							y: tf * rpy,
+							z: -1.0,
+						});
+						UE * V::new_sig(w.x) + VE * V::new_sig(w.y) + WE * V::new_sig(w.z)
+					};
+					let mut ill_l = V::new_sig(0.0);
+					let mut refl_l = V::new_sig(1.0) ;
+					for depth in 0..10 {
+						let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
+						if let Some(s) = h {
+							ill_l = ill_l + refl_l * s.sphere.ill;
+							ray.o = s.p;
+							ray.d = {
+								let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+								let (u, v) = tangent_space(n);
+								let d: V = {
+									let r = random::<f64>().sqrt();
+									let t = 2.0 * PI * random::<f64>();
+									let x = r * t.cos();
+									let y = r * t.sin();
+									V {
+										x: x,
+										y: y,
+										z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+									}
+								};
+								u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
 							};
-							u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
-						};
-						refl_l = refl_l * s.sphere.refl;
-					} else {break}
-
-					if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {break;}
+							refl_l = refl_l * s.sphere.refl;
+						} else {break}
+						if refl_l.x.max(refl_l.y.max(refl_l.z)) == 0.0 {break;}
+					}
+					write_push = ill_l + refl_l / V::new_sig(SPP as f64);
 				}
-				write_push = ill_l + refl_l / V::new_sig(SPP as f64);
+				buf_vec.push(write_push);
+				// buf_pushにVのやつをぶちこむ
 			}
-			let write_iter = [write_push.x, write_push.y, write_push.z, i as f64];
-			sen.send(write_iter).expect("failed send iter");
-			if i % 10000 == 0 {
-				println!("done: {}/960000", i);
-			}
+			buf_vec
+			//Thread終わりに返す
 		});
+		push_vec.push(push_th);
+		println!("done: {}/{}", i, WORKS);
 	}
-
-	let write_v = rec.into_iter().take(all).collect::<Vec<[f64; 4]>>();
-
 	let tonemap = |v: f64| {
 		use std::cmp::*;
 		min(max((v.powf(1.0 / 2.2) * 255.0) as u32, 0), 255)
-		// ちゃんとガンマ補正したよ
 	};
 
 	// ppmファイル生成
@@ -149,26 +144,16 @@ fn main() {
 	file.write_all(format!("P3\n{} {}\n{}\n", WIDTH, HEIGHT, 255).as_bytes())
 		.unwrap();
 
-	for c in 0..all {
-		println!("{}", c);
-		let mut buf = c / 10000 * 5000;
-		let mut ch = true;
-		let mut n = [0.0; 4];
-		loop {
-			if write_v[buf][3] == c as f64{
-				n = write_v[buf];
-				break;
-			}
-			if buf == c + 500 {
-				println!("input noise");
-				break;
-			}
-			buf += 1;
+	for i in 0..WORKS {
+		let job_write = push_vec.pop().unwrap().join().unwrap();
+
+		for n in job_write.iter() {
+			file.write_all(format!("{} {} {}\n",
+								   tonemap(n.x),
+								   tonemap(n.y),
+								   tonemap(n.z)).as_bytes()).unwrap();
 		}
-		file.write_all(format!("{} {} {}\n",
-							   tonemap(n[0]),
-							   tonemap(n[1]),
-							   tonemap(n[2])).as_bytes()).unwrap();
+
 	}
 }
 
