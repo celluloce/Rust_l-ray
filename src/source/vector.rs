@@ -101,4 +101,27 @@ impl V {
             z: self.z / self.dot(self).sqrt(),
         }
     }
+	pub fn tangent_space(self) -> (V, V){
+		// 一つのベクトルを元に、直交の単位ベクトルを生成する関数。
+		// 外積を使うことで同じ事はできるが、こちらの方が速度で勝っている。
+		// 理解が難しいので今後の課題
+		let s = if self.z >= 0.0 { 1.0 } else { -1.0 };
+
+		let a = -1.0 / (s + self.z);
+		let b = self.x * self.y * a;
+
+		// return
+		(
+			V {
+				x: 1.0 + s * self.x * self.x * a,
+				y: s * b,
+				z: -s * self.x,
+			},
+			V {
+				x: b,
+				y: s + self.y * self.y * a,
+				z: -self.y,
+			}
+		)
+	}
 }

@@ -101,7 +101,7 @@ fn main() {
 							ray.o = s.p;
 							ray.d = {
 								let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
-								let (u, v) = tangent_space(n);
+								let (u, v) = n.tangent_space();
 								let d: V = {
 									let r = random::<f64>().sqrt();
 									let t = 2.0 * PI * random::<f64>();
@@ -159,26 +159,26 @@ fn main() {
 	}
 }
 
-fn tangent_space(n: V) -> (V, V){
-	// 一つのベクトルを元に、直交の単位ベクトルを生成する関数。
-	// 外積を使うことで同じ事はできるが、こちらの方が速度で勝っている。
-	// 理解が難しいので今後の課題
-	let s = if n.z >= 0.0 { 1.0 } else { -1.0 };
-
-	let a = -1.0 / (s + n.z);
-	let b = n.x * n.y * a;
-
-	// return
-	(
-		V {
-			x: 1.0 + s * n.x * n.x * a,
-			y: s * b,
-			z: -s * n.x,
-		},
-		V {
-			x: b,
-			y: s + n.y * n.y * a,
-			z: -n.y,
-		}
-	)
-}
+// fn tangent_space(n: V) -> (V, V){
+// 	// 一つのベクトルを元に、直交の単位ベクトルを生成する関数。
+// 	// 外積を使うことで同じ事はできるが、こちらの方が速度で勝っている。
+// 	// 理解が難しいので今後の課題
+// 	let s = if n.z >= 0.0 { 1.0 } else { -1.0 };
+//
+// 	let a = -1.0 / (s + n.z);
+// 	let b = n.x * n.y * a;
+//
+// 	// return
+// 	(
+// 		V {
+// 			x: 1.0 + s * n.x * n.x * a,
+// 			y: s * b,
+// 			z: -s * n.x,
+// 		},
+// 		V {
+// 			x: b,
+// 			y: s + n.y * n.y * a,
+// 			z: -n.y,
+// 		}
+// 	)
+// }
