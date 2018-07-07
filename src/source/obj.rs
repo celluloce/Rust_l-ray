@@ -1,4 +1,12 @@
-use source::*;
+use source::{*, vector::*,};
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum SurfaceiType {
+	Diffuse,
+	// 拡散面
+	Mirror,
+	// 鏡面
+}
 
 #[derive(Debug, Clone)]
 pub struct Ray {
@@ -18,6 +26,8 @@ impl Ray {
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Sphere {
+	pub s_type: SurfaceiType,
+	// 表面の種類
     pub p: vector::V,
     // 中心位置
     pub r: f64,
@@ -31,14 +41,16 @@ pub struct Sphere {
 impl Sphere {
     pub fn new() -> Sphere {
         Sphere {
+			s_type: SurfaceiType::Mirror,
             p: vector::V::new(),
             r: 0.0,
             refl: vector::V::new(),
             ill: vector::V::new(),
         }
     }
-    pub fn from(p: vector::V, r: f64, refl: vector::V, ill: vector::V) -> Sphere {
+    pub fn from(s_type: SurfaceiType, p: vector::V, r: f64, refl: vector::V, ill: vector::V) -> Sphere {
         Sphere {
+			s_type: s_type,
             p: p,
             r: r,
             refl: refl,
@@ -51,8 +63,6 @@ impl Sphere {
         let det = b * b - vector::V::dot(op, op) + self.r * self.r;
         // 判別式
 
-        let mut hit = Hit::new();
-
         if det < 0.0 {
             // 実数解を持たない
             return None;
@@ -60,15 +70,23 @@ impl Sphere {
 
         let t1 = b - det.sqrt();
         if tmin < t1 && t1 < tmax {
-            hit.t = t1;
-            hit.sphere = self;
+			let hit = Hit {
+				t: t1,
+				p: V::new(),
+				n: V::new(),
+				sphere: self,
+			};
             return Some(hit);
         }
 
         let t2 = b + det.sqrt();
         if tmin < t2 && t2 < tmax {
-            hit.t = t2;
-            hit.sphere = self;
+			let hit = Hit {
+				t: t2,
+				p: V::new(),
+				n: V::new(),
+				sphere: self,
+			};
             Some(hit)
         } else {
             None
@@ -82,57 +100,58 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(s: Sphere) -> Scene {
-        // Vecの意味無いね、いいよね
-        Scene { spheres: vec![s] }
-    }
-    pub fn new_mul() -> Scene {
-        Scene {
-            spheres: vec![
-                Sphere::from(
-                    vector::V {
-                        x: -0.2,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    0.5,
-                    vector::V {
-                        x: 0.0,
-                        y: 1.0,
-                        z: 0.0,
-                    },
-                    vector::V {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                ),
-                Sphere::from(
-                    vector::V {
-                        x: 0.2,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                    0.5,
-                    vector::V {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 1.0,
-                    },
-                    vector::V {
-                        x: 0.0,
-                        y: 0.0,
-                        z: 0.0,
-                    },
-                ),
-            ],
-        }
-    }
+    // pub fn new(s: Sphere) -> Scene {
+    //     // Vecの意味無いね、いいよね
+    //     Scene { spheres: vec![s] }
+    // }
+    // pub fn new_mul() -> Scene {
+    //     Scene {
+    //         spheres: vec![
+    //             Sphere::from(
+    //                 vector::V {
+    //                     x: -0.2,
+    //                     y: 0.0,
+    //                     z: 0.0,
+    //                 },
+    //                 0.5,
+    //                 vector::V {
+    //                     x: 0.0,
+    //                     y: 1.0,
+    //                     z: 0.0,
+    //                 },
+    //                 vector::V {
+    //                     x: 0.0,
+    //                     y: 0.0,
+    //                     z: 0.0,
+    //                 },
+    //             ),
+    //             Sphere::from(
+    //                 vector::V {
+    //                     x: 0.2,
+    //                     y: 0.0,
+    //                     z: 0.0,
+    //                 },
+    //                 0.5,
+    //                 vector::V {
+    //                     x: 0.0,
+    //                     y: 0.0,
+    //                     z: 1.0,
+    //                 },
+    //                 vector::V {
+    //                     x: 0.0,
+    //                     y: 0.0,
+    //                     z: 0.0,
+    //                 },
+    //             ),
+    //         ],
+    //     }
+    // }
     pub fn in_room() -> Scene {
         Scene {
             spheres: vec![
                 Sphere::from(
                     //左の壁
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: 1e5 + 1.0,
                         y: 40.8,
@@ -152,6 +171,7 @@ impl Scene {
                 ),
                 Sphere::from(
                     //右の壁
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: -1e5 + 99.0,
                         y: 40.8,
@@ -171,6 +191,7 @@ impl Scene {
                 ),
                 Sphere::from(
                     //奥の壁
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: 51.0,
                         y: 40.8,
@@ -190,6 +211,7 @@ impl Scene {
                 ), //
                 Sphere::from(
                     //床
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: 51.0,
                         y: 1e5,
@@ -209,6 +231,7 @@ impl Scene {
                 ),
                 Sphere::from(
                     //天井
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: 51.0,
                         y: -1e5 + 81.6,
@@ -227,6 +250,7 @@ impl Scene {
                     },
                 ),
                 Sphere::from(
+					SurfaceiType::Mirror,
                     vector::V {
                         x: 27.0,
                         y: 16.5,
@@ -245,6 +269,7 @@ impl Scene {
                     },
                 ),
                 Sphere::from(
+					SurfaceiType::Mirror,
                     vector::V {
                         x: 73.0,
                         y: 16.5,
@@ -252,7 +277,7 @@ impl Scene {
                     },
                     16.5,
                     vector::V {
-                        x: 0.7,
+                        x: 0.5,
                         y: 0.9,
                         z: 0.9,
                     },
@@ -264,6 +289,7 @@ impl Scene {
                 ),
                 Sphere::from(
                     // 上の照明
+					SurfaceiType::Diffuse,
                     vector::V {
                         x: 51.0,
                         y: 681.6,
@@ -286,10 +312,10 @@ impl Scene {
     }
     pub fn intersect(self: &Scene, ray: &Ray, tmin: f64, tmax: f64) -> Option<Hit> {
         let mut minh: Option<Hit> = None;
-        let mut s: Sphere = Sphere::new();
         let mut buf = tmax;
 
-        for c in self.spheres.iter() {
+		let mut s = Sphere::new();
+		for c in self.spheres.iter() {
             let h = c.intersect(ray, tmin, tmax);
             if let Some(i) = h {
                 if i.t < buf {
@@ -298,7 +324,7 @@ impl Scene {
                     s = *c;
                 }
             }
-        }
+        };
 
         if let Some(mut m) = minh {
             let t = vector::V::new_sig(m.t);
@@ -327,12 +353,12 @@ pub struct Hit {
 }
 
 impl Hit {
-    fn new() -> Hit {
-        Hit {
-            t: 0.0,
-            p: vector::V::new(),
-            n: vector::V::new(),
-            sphere: Sphere::new(),
-        }
-    }
+    // fn new() -> Hit {
+    //     Hit {
+    //         t: 0.0,
+    //         p: vector::V::new(),
+    //         n: vector::V::new(),
+    //         sphere: Sphere::new(),
+    //     }
+    // }
 }

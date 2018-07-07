@@ -21,7 +21,7 @@ const WIDTH: usize = 1200;
 const HEIGHT: usize = 800;
 const MAX: usize = 255;
 
-// pixelあたりのサンプル数（よく解ってない）
+// pixelあたりのサンプル数
 const SPP: u32 = 100;
 
 // Threadの数
@@ -94,26 +94,32 @@ fn main() {
 					};
 					let mut ill_l = V::new_sig(0.0);
 					let mut refl_l = V::new_sig(1.0) ;
-					for depth in 0..2 {
+					for depth in 0..10 {
 						let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
 						if let Some(s) = h {
 							ill_l = ill_l + refl_l * s.sphere.ill;
 							ray.o = s.p;
 							ray.d = {
-								let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
-								let (u, v) = n.tangent_space();
-								let d: V = {
-									let r = random::<f64>().sqrt();
-									let t = 2.0 * PI * random::<f64>();
-									let x = r * t.cos();
-									let y = r * t.sin();
-									V {
-										x: x,
-										y: y,
-										z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
-									}
-								};
-								u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
+								if s.sphere.s_type == obj::SurfaceiType::Diffuse {
+									let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+									let (u, v) = n.tangent_space();
+									let d: V = {
+										let r = random::<f64>().sqrt();
+										let t = 2.0 * PI * random::<f64>();
+										let x = r * t.cos();
+										let y = r * t.sin();
+										V {
+											x: x,
+											y: y,
+											z: 0.0_f64.max(1.0 - x * x - y * y).sqrt(),
+										}
+									};
+									u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
+								} else if s.sphere.s_type == obj::SurfaceiType::Mirror {
+									V::new_sig(2.0 * V::dot(-ray.d, s.n)) * s.n + ray.d
+								} else {
+									panic!("dont hit sphere")
+								}
 							};
 							refl_l = refl_l * s.sphere.refl;
 						} else {break;}
