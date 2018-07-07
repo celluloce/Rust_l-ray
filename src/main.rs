@@ -14,7 +14,7 @@ use threadpool::ThreadPool;
 
 use rand::random;
 
-use l_ray::source::{ vector::*, *};
+use l_ray::source::{vector::*, obj::*};
 
 // 画像の情報
 const WIDTH: usize = 1200;
@@ -22,7 +22,7 @@ const HEIGHT: usize = 800;
 const MAX: usize = 255;
 
 // pixelあたりのサンプル数
-const SPP: u32 = 100;
+const SPP: u32 = 1000;
 
 // Threadの数
 const WORKS: usize = 10;
@@ -63,7 +63,7 @@ fn main() {
 
 	// scene 初期化
 	//let scene = obj::Scene::new_mul();
-	let scene = obj::Scene::in_room();
+	let scene = Scene::in_room();
 
 	let mut push_vec: Vec<JoinHandle<_>>= Vec::with_capacity(WORKS);
 	for i in (0..WORKS).rev() {
@@ -78,7 +78,7 @@ fn main() {
 				for j in 0..SPP as usize {
 					let x = (w_num % WIDTH) as f64;
 					let y = (HEIGHT - (w_num / WIDTH)) as f64;
-					let mut ray = obj::Ray::new();
+					let mut ray = Ray::new();
 
 					ray.o = eye;
 					ray.d = {
@@ -95,13 +95,14 @@ fn main() {
 					let mut ill_l = V::new_sig(0.0);
 					let mut refl_l = V::new_sig(1.0) ;
 					for depth in 0..10 {
-						let h: Option<obj::Hit> = scene.intersect(&ray, 1e-4, 1e+10);
+						let h: Option<Hit> = scene.intersect(&ray, 1e-4, 1e+10);
 						if let Some(s) = h {
 							ill_l = ill_l + refl_l * s.sphere.ill;
 							ray.o = s.p;
 							ray.d = {
-								if s.sphere.s_type == obj::SurfaceiType::Diffuse {
-									let n = if V::dot(s.n, -ray.d) > 0.0 { s.n } else { -s.n };
+								let dot_nd = V::dot(s.n, -ray.d);
+								if s.sphere.s_type == SurfaceiType::Diffuse {
+									let n = if dot_nd > 0.0 { s.n } else { -s.n };
 									let (u, v) = n.tangent_space();
 									let d: V = {
 										let r = random::<f64>().sqrt();
@@ -115,8 +116,13 @@ fn main() {
 										}
 									};
 									u * V::new_sig(d.x) + v * V::new_sig(d.y) + n * V::new_sig(d.z)
-								} else if s.sphere.s_type == obj::SurfaceiType::Mirror {
-									V::new_sig(2.0 * V::dot(-ray.d, s.n)) * s.n + ray.d
+								} else if s.sphere.s_type == SurfaceiType::Mirror {
+									V::new_sig(2.0 * dot_nd) * s.n + ray.d
+								} else if s.sphere.s_type == SurfaceiType::Fresnel {
+
+									let ray = ray.clone();
+									fresnel(s, ray)
+
 								} else {
 									panic!("dont hit sphere")
 								}
@@ -165,26 +171,37 @@ fn main() {
 	}
 }
 
-// fn tangent_space(n: V) -> (V, V){
-// 	// 一つのベクトルを元に、直交の単位ベクトルを生成する関数。
-// 	// 外積を使うことで同じ事はできるが、こちらの方が速度で勝っている。
-// 	// 理解が難しいので今後の課題
-// 	let s = if n.z >= 0.0 { 1.0 } else { -1.0 };
-//
-// 	let a = -1.0 / (s + n.z);
-// 	let b = n.x * n.y * a;
-//
-// 	// return
-// 	(
-// 		V {
-// 			x: 1.0 + s * n.x * n.x * a,
-// 			y: s * b,
-// 			z: -s * n.x,
-// 		},
-// 		V {
-// 			x: b,
-// 			y: s + n.y * n.y * a,
-// 			z: -n.y,
-// 		}
-// 	)
-// }
+fn fresnel(s: Hit, ray: Ray) -> V{
+	let dot_nd = V::dot(s.n, -ray.d);
+	let ior = s.sphere.ior;
+	let (n, eta)
+		= if dot_nd > 0.0 { (s.n, 1.0 / ior) }else { (-s.n, ior)};
+	let wt: Option<V> = {
+		let t = V::dot(n, -ray.d);
+		let t2 = 1.0 - eta * eta * (1.0 - t * t);
+		if t2 >= 0.0 {
+			Some(V::new_sig(eta) * (n * V::new_sig(t) + ray.d) - n * V::new_sig(t2.sqrt()))
+		} else {
+			None
+		}
+	};
+	if let Some(wt_s) = wt {
+		let fr = {
+			let cos = if dot_nd > 0.0 {
+				dot_nd
+			} else  {
+				V::dot(wt_s, s.n)
+			};
+			let r = (1.0 - ior) / (1.0 + ior);
+			r * r + (1.0 - r * r) * (1.0 - cos).powf(5.0)
+		};
+		if random::<f64>() < fr {
+			return V::new_sig(2.0 * dot_nd) * s.n + ray.d;
+		} else {
+			return wt_s;
+		}
+	} else {
+		return V::new_sig(2.0 * dot_nd) * s.n + ray.d;
+	}
+
+}
